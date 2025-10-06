@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   SnakeGame:
-    image: B0LTZ205/snake-game:lts
+    image: b0ltz205/snake-game:lts
     build: .
     container_name: snake-game
     ports:

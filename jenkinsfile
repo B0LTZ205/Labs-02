@@ -1,0 +1,83 @@
+pipeline {
+    agent any
+
+    environment 
+    {
+        // Docker hub credentials ID Stored in Jenkins
+        DOCKERHUB_CREDENTIALS_ID = 'CWEB2140-01'
+        IMAGE_NAME = 'b0ltz205/snake-game:lts'
+    }
+
+    stages 
+    {
+        stage('Clone from git')
+        {
+            steps
+            {
+                checkout scm
+            }
+        }
+
+        stage('SAST')
+        {
+            steps
+            {
+                sh 'echo Running SAST scan'
+            }
+        }
+
+        stage('BUILD-AND-TAG')
+        {
+            agent{label 'CWEB-2140-AppServer'}
+            steps
+            {
+                script
+                {
+                    // Build docker image using jenkins docker pipeline API
+                    echo "Building Docker image ${IMAGE_NAME}"
+                    app = docker.build ("${IMAGE_NAME}")
+                    app.tag("lts")
+                }
+            }
+        }
+
+        stage('PUSH-TO-DOCKER-HUB')
+        {
+            agent{label 'CWEB-2140-AppServer'}
+            steps
+            {
+                script
+                {
+                    // Build docker image using jenkins docker pipeline API
+                    echo "Pushing image ${IMAGE_NAME}:latest to Docker Hub..."
+                    docker.withRegistry('https://registry.hub.docker.com', "${DOCKERHUB_CREDENTIALS_ID}")
+                    {
+                        app.push("lts")
+                    }
+                }
+            }
+        }
+
+        stage('DEPLOY-TO-PRODUCTION')
+        {
+            agent{label 'CWEB-2140-AppServer'}
+            steps
+            {
+                echo "Starting deployment using docker-compose..."
+                
+                    script
+                    {
+                        dir("${env.WORKSPACE}")
+                        {
+                            sh'''
+                            docker-compose down
+                            docker-compose up -d
+                            docker ps
+                            '''
+                        }
+                    }
+                echo "Deployment completed successfully."
+            }
+        }
+    }
+}
