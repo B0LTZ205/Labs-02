@@ -3,7 +3,7 @@ pipeline {
 
     environment 
     {
-        // Docker hub credentials ID Stored in Jenkins
+        // Docker hub credentials ID Stored in Jenkin
         DOCKERHUB_CREDENTIALS_ID = 'CWEB2140-01'
         IMAGE_NAME = 'b0ltz205/snake-game:lts'
     }
