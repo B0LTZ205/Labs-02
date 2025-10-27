@@ -18,11 +18,19 @@ pipeline {
             }
         }
 
-        stage('SAST')
-        {
-            steps
-            {
-                sh 'echo Running SAST scan'
+    stage('SonarQube Analysis') {
+            agent {
+                label 'CWEB-2140-AppServer'
+            }
+            steps {
+                script {
+                    def scannerHome = tool 'sonarqube'
+                    withSonarQubeEnv('sonarqube') {
+                        sh "${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=gameapp \
+                            -Dsonar.sources=."
+                    }
+                }
             }
         }
 
